@@ -1,0 +1,469 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>Hackea el Sistema</title>
+  <style>
+    * { box-sizing: border-box; }
+
+    :root {
+      --bg: #03150a;
+      --panel: #071d10;
+      --line: #123d24;
+      --text: #9effb7;
+      --strong: #44ff88;
+      --danger: #ff5f56;
+      --warn: #ffd166;
+      --ok: #44ff88;
+      --shadow: 0 0 20px rgba(68,255,136,.12);
+    }
+
+    body {
+      margin: 0;
+      min-height: 100vh;
+      background:
+        radial-gradient(circle at top, rgba(68,255,136,.08), transparent 35%),
+        linear-gradient(180deg, #020a05 0%, var(--bg) 100%);
+      color: var(--text);
+      font-family: Consolas, Monaco, 'Courier New', monospace;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      padding: 20px;
+    }
+
+    .terminal {
+      width: min(920px, 100%);
+      border: 1px solid var(--line);
+      background: rgba(4, 15, 8, 0.96);
+      border-radius: 16px;
+      overflow: hidden;
+      box-shadow: var(--shadow);
+    }
+
+    .topbar {
+      display: flex;
+      align-items: center;
+      gap: 10px;
+      padding: 12px 16px;
+      border-bottom: 1px solid var(--line);
+      background: rgba(10, 25, 14, 0.95);
+    }
+
+    .dot {
+      width: 12px;
+      height: 12px;
+      border-radius: 50%;
+    }
+
+    .dot.red { background: var(--danger); }
+    .dot.yellow { background: var(--warn); }
+    .dot.green { background: var(--ok); }
+
+    .title {
+      margin-left: 8px;
+      color: #c8ffd8;
+      opacity: .85;
+      font-size: 14px;
+    }
+
+    .content {
+      padding: 20px;
+    }
+
+    .hud {
+      display: grid;
+      grid-template-columns: repeat(4, 1fr);
+      gap: 12px;
+      margin-bottom: 18px;
+    }
+
+    .card {
+      border: 1px solid var(--line);
+      background: rgba(10, 28, 16, 0.78);
+      border-radius: 12px;
+      padding: 12px;
+      min-height: 74px;
+    }
+
+    .label {
+      font-size: 12px;
+      opacity: .75;
+      margin-bottom: 6px;
+      text-transform: uppercase;
+      letter-spacing: .08em;
+    }
+
+    .value {
+      font-size: 22px;
+      color: var(--strong);
+      font-weight: bold;
+    }
+
+    .log {
+      height: 300px;
+      overflow-y: auto;
+      border: 1px solid var(--line);
+      border-radius: 12px;
+      background: rgba(2, 12, 6, 0.9);
+      padding: 14px;
+      line-height: 1.5;
+      margin-bottom: 16px;
+      box-shadow: inset 0 0 18px rgba(68,255,136,.05);
+      scroll-behavior: smooth;
+    }
+
+    .line {
+      margin: 0 0 8px;
+      word-break: break-word;
+    }
+
+    .muted { opacity: .7; }
+    .success { color: #75ff9d; }
+    .error { color: #ff8e8e; }
+    .info { color: #8bd8ff; }
+    .warn { color: #ffe08a; }
+
+    .controls {
+      display: grid;
+      grid-template-columns: 1fr auto;
+      gap: 12px;
+      align-items: center;
+    }
+
+    .prompt {
+      display: flex;
+      align-items: center;
+      gap: 10px;
+      border: 1px solid var(--line);
+      border-radius: 12px;
+      padding: 12px 14px;
+      background: rgba(7, 22, 11, 0.9);
+    }
+
+    .prompt span {
+      color: var(--strong);
+      white-space: nowrap;
+    }
+
+    input {
+      width: 100%;
+      background: transparent;
+      border: 0;
+      outline: 0;
+      color: var(--text);
+      font-family: inherit;
+      font-size: 16px;
+    }
+
+    button {
+      background: linear-gradient(180deg, #0f331b 0%, #0a2614 100%);
+      border: 1px solid #1e6c39;
+      color: #c8ffd8;
+      padding: 12px 18px;
+      border-radius: 12px;
+      cursor: pointer;
+      font-family: inherit;
+      font-weight: bold;
+      transition: .15s ease;
+    }
+
+    button:hover {
+      transform: translateY(-1px);
+      box-shadow: 0 0 12px rgba(68,255,136,.18);
+    }
+
+    .footer {
+      margin-top: 14px;
+      font-size: 13px;
+      opacity: .7;
+    }
+
+    .blink {
+      animation: blink 1s step-end infinite;
+    }
+
+    @keyframes blink {
+      50% { opacity: 0; }
+    }
+
+    @media (max-width: 760px) {
+      .hud {
+        grid-template-columns: repeat(2, 1fr);
+      }
+
+      .controls {
+        grid-template-columns: 1fr;
+      }
+    }
+
+    @media (max-width: 480px) {
+      .hud {
+        grid-template-columns: 1fr;
+      }
+
+      .content {
+        padding: 14px;
+      }
+
+      .log {
+        height: 360px;
+      }
+    }
+  </style>
+</head>
+<body>
+  <div class="terminal">
+    <div class="topbar">
+      <div class="dot red"></div>
+      <div class="dot yellow"></div>
+      <div class="dot green"></div>
+      <div class="title">root@hack-lab:~ — Hackea el Sistema</div>
+    </div>
+
+    <div class="content">
+      <div class="hud">
+        <div class="card">
+          <div class="label">Nivel</div>
+          <div class="value" id="level">1 / 5</div>
+        </div>
+        <div class="card">
+          <div class="label">Tiempo</div>
+          <div class="value" id="timer">60</div>
+        </div>
+        <div class="card">
+          <div class="label">Integridad</div>
+          <div class="value" id="lives">❤❤❤</div>
+        </div>
+        <div class="card">
+          <div class="label">Puntuación</div>
+          <div class="value" id="score">0</div>
+        </div>
+      </div>
+
+      <div class="log" id="log"></div>
+
+      <div class="controls">
+        <div class="prompt">
+          <span>root@hack-lab:~$</span>
+          <input id="answer" type="text" autocomplete="off" placeholder="Escribe aquí la respuesta correcta..." />
+        </div>
+        <button id="actionBtn">Enviar</button>
+      </div>
+
+      <div class="footer">
+        Resuelve comandos, puertos y conceptos básicos antes de que el sistema te expulse.<span class="blink">_</span>
+      </div>
+    </div>
+  </div>
+
+  <script>
+    const challenges = [
+      {
+        type: 'texto',
+        question: 'Iniciando reconocimiento... ¿Qué comando muestra el directorio actual en Linux?',
+        answer: ['pwd'],
+        success: 'Ruta detectada. Reconocimiento completado.',
+      },
+      {
+        type: 'numero',
+        question: 'Escaneo de puertos activo... ¿Qué puerto usa normalmente SSH?',
+        answer: ['22'],
+        success: 'Puerto 22 identificado. Acceso remoto localizado.',
+      },
+      {
+        type: 'texto',
+        question: 'Autenticación en curso... ¿Qué comando lista archivos en Linux?',
+        answer: ['ls'],
+        success: 'Listado recibido. Estructura del objetivo cargada.',
+      },
+      {
+        type: 'texto',
+        question: 'Comprobando higiene digital... ¿Qué tipo de contraseña es más segura: débil o fuerte? Responde con una sola palabra.',
+        answer: ['fuerte'],
+        success: 'Política de contraseñas aprobada. Buen criterio, como debe ser.',
+      },
+      {
+        type: 'texto',
+        question: 'Fase final... ¿Qué significa VPN? Responde exactamente: red privada virtual.',
+        answer: ['red privada virtual'],
+        success: 'Túnel seguro establecido. Objetivo comprometido.',
+      }
+    ];
+
+    const log = document.getElementById('log');
+    const answerInput = document.getElementById('answer');
+    const actionBtn = document.getElementById('actionBtn');
+    const levelEl = document.getElementById('level');
+    const timerEl = document.getElementById('timer');
+    const livesEl = document.getElementById('lives');
+    const scoreEl = document.getElementById('score');
+
+    let level = 0;
+    let score = 0;
+    let lives = 3;
+    let timeLeft = 60;
+    let playing = true;
+    let interval;
+
+    function writeLine(text, className = '') {
+      const p = document.createElement('p');
+      p.className = `line ${className}`.trim();
+      p.textContent = text;
+      log.appendChild(p);
+      log.scrollTop = log.scrollHeight;
+    }
+
+    function updateHud() {
+      levelEl.textContent = `${Math.min(level + 1, challenges.length)} / ${challenges.length}`;
+      timerEl.textContent = timeLeft;
+      livesEl.textContent = '❤'.repeat(lives) + '♡'.repeat(3 - lives);
+      scoreEl.textContent = score;
+    }
+
+    function normalize(text) {
+      return text
+        .trim()
+        .toLowerCase()
+        .normalize('NFD')
+        .replace(/[\u0300-\u036f]/g, '');
+    }
+
+    function showChallenge() {
+      if (level >= challenges.length) {
+        winGame();
+        return;
+      }
+
+      const challenge = challenges[level];
+      writeLine(`[NIVEL ${level + 1}] ${challenge.question}`, 'info');
+      updateHud();
+      answerInput.focus();
+    }
+
+    function failAttempt(message = 'Respuesta incorrecta. El sistema refuerza defensas.') {
+      lives--;
+      writeLine(message, 'error');
+      updateHud();
+
+      if (lives <= 0) {
+        gameOver();
+      }
+    }
+
+    function handleAnswer() {
+      if (!playing) return;
+
+      const current = challenges[level];
+      const value = normalize(answerInput.value);
+
+      if (!value) {
+        writeLine('No has escrito nada. Así no se hackea ni una tostadora.', 'warn');
+        return;
+      }
+
+      const valid = current.answer.some(a => normalize(a) === value);
+
+      if (valid) {
+        score += 100;
+        writeLine(`> ${answerInput.value}`, 'muted');
+        writeLine(current.success, 'success');
+        level++;
+        answerInput.value = '';
+        updateHud();
+
+        if (level < challenges.length) {
+          setTimeout(showChallenge, 500);
+        } else {
+          winGame();
+        }
+      } else {
+        writeLine(`> ${answerInput.value}`, 'muted');
+        answerInput.value = '';
+        failAttempt();
+      }
+    }
+
+    function gameOver() {
+      playing = false;
+      clearInterval(interval);
+      writeLine('ACCESO DENEGADO. Has sido expulsado del sistema.', 'error');
+      writeLine('Pulsa el botón para reiniciar el ataque.', 'warn');
+      actionBtn.textContent = 'Reiniciar';
+      updateHud();
+    }
+
+    function winGame() {
+      playing = false;
+      clearInterval(interval);
+      score += Math.max(timeLeft, 0) * 5;
+      updateHud();
+      writeLine('ROOT ACCESS GRANTED. Sistema comprometido con éxito.', 'success');
+      writeLine(`Puntuación final: ${score}`, 'success');
+      writeLine('Pulsa el botón para volver a jugar.', 'info');
+      actionBtn.textContent = 'Reiniciar';
+    }
+
+    function restartGame() {
+      level = 0;
+      score = 0;
+      lives = 3;
+      timeLeft = 60;
+      playing = true;
+      log.innerHTML = '';
+      actionBtn.textContent = 'Enviar';
+      updateHud();
+      bootSequence();
+      clearInterval(interval);
+      interval = setInterval(tick, 1000);
+    }
+
+    function tick() {
+      if (!playing) return;
+      timeLeft--;
+      updateHud();
+
+      if (timeLeft <= 0) {
+        playing = false;
+        clearInterval(interval);
+        writeLine('Tiempo agotado. El firewall ha cerrado la sesión.', 'error');
+        writeLine('Pulsa el botón para reiniciar.', 'warn');
+        actionBtn.textContent = 'Reiniciar';
+      }
+    }
+
+    function bootSequence() {
+      writeLine('Iniciando terminal ofensiva...', 'muted');
+      writeLine('Cargando módulos de reconocimiento...', 'muted');
+      writeLine('Bypassing visual del firewall... más o menos.', 'muted');
+      writeLine('Objetivo listo. Introduce respuestas correctas para avanzar.', 'success');
+      writeLine('---', 'muted');
+      showChallenge();
+    }
+
+    actionBtn.addEventListener('click', () => {
+      if (playing) {
+        handleAnswer();
+      } else {
+        restartGame();
+      }
+    });
+
+    answerInput.addEventListener('keydown', (e) => {
+      if (e.key === 'Enter') {
+        e.preventDefault();
+        if (playing) {
+          handleAnswer();
+        } else {
+          restartGame();
+        }
+      }
+    });
+
+    updateHud();
+    bootSequence();
+    interval = setInterval(tick, 1000);
+  </script>
+</body>
+</html>
